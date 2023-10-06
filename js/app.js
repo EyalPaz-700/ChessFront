@@ -322,3 +322,4 @@ kings.forEach( (el) => {
     el.onclick = checkValidity(kingMove)
 })
 
+// i want to test gitHub actions
