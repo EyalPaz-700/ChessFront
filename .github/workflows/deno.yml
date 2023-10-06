@@ -30,12 +30,7 @@ jobs:
         uses: denoland/setup-deno@61fe2df320078202e33d7d5ad347e7dcfa0e8f31  # v1.1.2
         with:
           deno-version: v1.x
-      - name: First interaction
-        uses: actions/first-interaction@v1.2.0
-        with:
-          # Token for the repository. Can be passed in using {{ secrets.GITHUB_TOKEN }}
-          repo-token:   secrets.AUTH_TOKEN 
-      
+    
       - name: Verify formatting
         run: deno fmt --check
 
