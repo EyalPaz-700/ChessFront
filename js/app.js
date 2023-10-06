@@ -90,6 +90,9 @@ function checkValidity(func) {
     return function() {
         if ((this.firstElementChild.src.includes('dt45') && moveCount % 2 === 1) ||
             (this.firstElementChild.src.includes('lt45') && moveCount % 2 === 0)) {
+            document.querySelectorAll('.available-move').forEach( e => {
+                e.classList.remove('available-move')
+            })
             func.apply(this, arguments);
         }
     };
@@ -100,16 +103,29 @@ function pawnMove(){
     const row = location[0]
     const column = location[1]
     const validMoves = []
+    debugger
     if (row == 8 || row == 1){
         turnToNewPiece(this)
     }
     else if (moveCount % 2 === 0){
+        if (row === 7) {
+            validMoves.push({
+                row : (row) - 2 ,
+                column : (column)
+               })
+        }
         validMoves.push({
         row : (row) - 1 ,
         column : (column)
        })
     }
     else {
+        if (row === 2) {
+            validMoves.push({
+                row : (row) + 2 ,
+                column : (column)
+               })
+        }
         validMoves.push({
             row : (row) + 1 ,
             column : (column)
@@ -252,12 +268,12 @@ function changePressableCells(piece) {
         currentPiece.onclick = () => {
             currentPiece.firstElementChild.src = piece.firstElementChild.src
             piece.firstElementChild.src = ' '
-            document.querySelectorAll('.cell').forEach( e => {
-                e.classList.remove('available-move')
-            })
             currentPiece.onclick = piece.onclick
             piece.onclick = null
             moveCount++;
+            document.querySelectorAll('.available-move').forEach( e => {
+                e.classList.remove('available-move')
+            })
         }
     })
 }
