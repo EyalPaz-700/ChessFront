@@ -14,7 +14,9 @@ const whiteBishop =  "https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_
 const whiteKnight =  "https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg"
 const whitePawn =  "https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg"
 
-https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg
+let moveCount = 0
+let currentMoves = []
+let activePiece = null
 // board init
 function initBoard(){
     for (let i = 0; i < 9; ++i){
@@ -41,39 +43,38 @@ function initBoard(){
             tempCell.appendChild(document.createElement("img"))
             if (i == 7){
                 tempCell.firstElementChild.src = whitePawn
+                tempCell.classList.add('pawn')
             }
             else if (i == 2){
                 tempCell.firstElementChild.src = blackPawn
+                tempCell.classList.add('pawn')
             }
-           
-                // if (i === 1){
-                //     tempCell.firstElementChild.src = blackRook
-                // }
-                // if (i === 8){
-                //     tempCell.firstElementChild.src = whiteRook
-
-                // }
              if (i === 1 || i === 8) {
                 switch (j){
                     case 1:
                     case 8:
                         tempCell.firstElementChild.src = i === 1 ? blackRook : whiteRook;
+                        tempCell.classList.add('rook')
                         break;
                     
                     case 2:
                     case 7:
                         tempCell.firstElementChild.src = i === 1 ? blackKnight : whiteKnight;
+                        tempCell.classList.add('knight')
                         break;
                     
                     case 3:
                     case 6:
-                        tempCell.firstElementChild.src =i === 1 ? blackBishop : whiteBishop;
+                        tempCell.firstElementChild.src = i === 1 ? blackBishop : whiteBishop;
+                        tempCell.classList.add('bishop')
                         break;
                     case 4:
                         tempCell.firstElementChild.src = i === 1 ? blackQueen : whiteQueen;
+                        tempCell.classList.add('queen')
                         break;
                     default:
                         tempCell.firstElementChild.src = i === 1 ? blackKing : whiteKing;
+                        tempCell.classList.add('king')
                         break;
                 }
             }
@@ -84,4 +85,224 @@ function initBoard(){
     }
 }
 
+
+function checkValidity(func) {
+    return function() {
+        if ((this.firstElementChild.src.includes('dt45') && moveCount % 2 === 1) ||
+            (this.firstElementChild.src.includes('lt45') && moveCount % 2 === 0)) {
+            func.apply(this, arguments);
+        }
+    };
+}
+
+function pawnMove(){
+    const location = getLocation(this)
+    const row = location[0]
+    const column = location[1]
+    const validMoves = []
+    if (row == 8 || row == 1){
+        turnToNewPiece(this)
+    }
+    else if (moveCount % 2 === 0){
+        validMoves.push({
+        row : (row) - 1 ,
+        column : (column)
+       })
+    }
+    else {
+        validMoves.push({
+            row : (row) + 1 ,
+            column : (column)
+           })
+    }
+    currentMoves =  validMoves
+    changePressableCells(this) 
+}
+
+
+function rookMove() {
+    const location = getLocation(this);
+    const row = location[0]
+    const column = location[1]
+    const validMoves = [];
+
+    // Horizontal moves
+    for (let i = 1; i <= 8; i++) {
+        if (i !== column) {
+            validMoves.push({ row, column: i });
+        }
+    }
+
+    // Vertical moves
+    for (let i = 1; i <= 8; i++) {
+        if (i !== row) {
+            validMoves.push({ row: i, column });
+        }
+    }
+
+    currentMoves =  validMoves;
+    changePressableCells(this) 
+}
+
+function bishopMove() {
+    const location = getLocation(this);
+    const row = location[0]
+    const column = location[1]
+    const validMoves = [];
+
+    // Diagonal moves
+    for (let i = 1; i <= 8; i++) {
+        if (i !== row && i !== column) {
+            validMoves.push({ row: i, column: i });
+            validMoves.push({ row: i, column: 9 - i });
+        }
+    }
+
+    currentMoves =  validMoves;
+    changePressableCells(this) 
+}
+
+function knightMove() {
+    const location = getLocation(this);
+    const row = location[0]
+    const column = location[1]
+    const validMoves = [];
+
+    const moves = [
+        { row: row + 2, column: column + 1 },
+        { row: row + 2, column: column - 1 },
+        { row: row - 2, column: column + 1 },
+        { row: row - 2, column: column - 1 },
+        { row: row + 1, column: column + 2 },
+        { row: row + 1, column: column - 2 },
+        { row: row - 1, column: column + 2 },
+        { row: row - 1, column: column - 2 },
+    ];
+
+    for (const move of moves) {
+        if (isValidMove(move.row, move.column)) {
+            validMoves.push(move);
+        }
+    }
+
+    currentMoves =  validMoves;
+    changePressableCells(this) 
+}
+
+// to do - change queenMove to bishop + rook move
+
+function queenMove() {
+    const location = getLocation(this);
+    const row = location[0]
+    const column = location[1]
+    const validMoves = [];
+
+    for (let i = 1; i <= 8; i++) {
+        if (i !== column) {
+            validMoves.push({ row, column: i });
+        }
+        if (i !== row) {
+            validMoves.push({ row: i, column });
+        }
+    }
+
+    for (let i = 1; i <= 8; i++) {
+        if (i !== row && i !== column) {
+            validMoves.push({ row: i, column: i });
+            validMoves.push({ row: i, column: 9 - i });
+        }
+    }
+
+    currentMoves =  validMoves;
+    changePressableCells(this) 
+}
+
+function kingMove() {
+    const location = getLocation(this);
+    const row = location[0]
+    const column = location[1]
+    const validMoves = [];
+
+    const moves = [
+        { row: row + 1, column },
+        { row: row - 1, column },
+        { row, column: column + 1 },
+        { row, column: column - 1 },
+        { row: row + 1, column: column + 1 },
+        { row: row + 1, column: column - 1 },
+        { row: row - 1, column: column + 1 },
+        { row: row - 1, column: column - 1 },
+    ];
+
+    for (const move of moves) {
+        if (isValidMove(move.row, move.column)) {
+            validMoves.push(move);
+        }
+    }
+
+    currentMoves =  validMoves;
+    changePressableCells(this) 
+}
+
+function changePressableCells(piece) {
+    activePiece = piece
+    currentMoves.forEach( e => {
+        let currentPiece = document.querySelector(`#cell-${e.row}-${e.column}`)
+        currentPiece.classList.add("available-move");
+        currentPiece.onclick = () => {
+            currentPiece.firstElementChild.src = piece.firstElementChild.src
+            piece.firstElementChild.src = ' '
+            document.querySelectorAll('.cell').forEach( e => {
+                e.classList.remove('available-move')
+            })
+            currentPiece.onclick = piece.onclick
+            piece.onclick = null
+            moveCount++;
+        }
+    })
+}
+
+
+function getLocation(piece){
+    let location = piece.id.split('-')
+    return location.slice(1,3).map( x => parseInt(x))
+}
+
+function isValidMove(row,column){
+    return row > 0 && column > 0 && row < 9 && column < 9
+}
+
 initBoard()
+
+
+const pawns = document.querySelectorAll('.pawn')
+
+pawns.forEach( (el) => {
+    el.onclick = checkValidity(pawnMove)
+})
+const bishops = document.querySelectorAll('.bishop')
+
+bishops.forEach( (el) => {
+    el.onclick = checkValidity(bishopMove)
+})
+const knights = document.querySelectorAll('.knight')
+
+knights.forEach( (el) => {
+    el.onclick = checkValidity(knightMove)
+})
+const rooks = document.querySelectorAll('.rook')
+
+rooks.forEach( (el) => {
+    el.onclick = checkValidity(rookMove)
+})
+const queens = document.querySelectorAll('.queen')
+
+queens.forEach( (el) => {
+    el.onclick = checkValidity(queenMove)
+})
+const kings = document.querySelectorAll('.king')
+
+kings.forEach( (el) => {
+    el.onclick = checkValidity(kingMove)
+})
+

@@ -55,3 +55,7 @@
    .cell.colored:nth-of-type(even) {
      background-color: gray;
    }
+
+.board .row .cell.colored.available-move { 
+    background-color: bisque;
+}
