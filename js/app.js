@@ -159,23 +159,35 @@ function rookMove() {
     currentMoves =  validMoves;
     changePressableCells(this) 
 }
-
 function bishopMove() {
     const location = getLocation(this);
-    const row = location[0]
-    const column = location[1]
+    const row = location[0];
+    const column = location[1];
     const validMoves = [];
 
-    // Diagonal moves
+    // Check valid diagonal moves
     for (let i = 1; i <= 8; i++) {
-        if (i !== row && i !== column) {
-            validMoves.push({ row: i, column: i });
-            validMoves.push({ row: i, column: 9 - i });
+        // Check upper-right diagonal
+        if (row - i >= 0 && column + i <= 8) {
+            validMoves.push({ row: row - i, column: column + i });
+        }
+        // Check upper-left diagonal
+        if (row - i >= 0 && column - i >= 0) {
+            validMoves.push({ row: row - i, column: column - i });
+        }
+        // Check lower-right diagonal
+        if (row + i <= 8 && column + i <= 8) {
+            validMoves.push({ row: row + i, column: column + i });
+        }
+        // Check lower-left diagonal
+        if (row + i <= 8 && column - i >= 0) {
+            validMoves.push({ row: row + i, column: column - i });
         }
     }
 
-    currentMoves =  validMoves;
-    changePressableCells(this) 
+    currentMoves = validMoves;
+    console.log(validMoves);
+    changePressableCells(this);
 }
 
 function knightMove() {
@@ -212,8 +224,24 @@ function queenMove() {
     const row = location[0]
     const column = location[1]
     const validMoves = [];
-
+   
     for (let i = 1; i <= 8; i++) {
+        // Check upper-right diagonal
+        if (row - i >= 0 && column + i <= 8) {
+            validMoves.push({ row: row - i, column: column + i });
+        }
+        // Check upper-left diagonal
+        if (row - i >= 0 && column - i >= 0) {
+            validMoves.push({ row: row - i, column: column - i });
+        }
+        // Check lower-right diagonal
+        if (row + i <= 8 && column + i <= 8) {
+            validMoves.push({ row: row + i, column: column + i });
+        }
+        // Check lower-left diagonal
+        if (row + i <= 8 && column - i >= 0) {
+            validMoves.push({ row: row + i, column: column - i });
+        }
         if (i !== column) {
             validMoves.push({ row, column: i });
         }
@@ -221,14 +249,6 @@ function queenMove() {
             validMoves.push({ row: i, column });
         }
     }
-
-    for (let i = 1; i <= 8; i++) {
-        if (i !== row && i !== column) {
-            validMoves.push({ row: i, column: i });
-            validMoves.push({ row: i, column: 9 - i });
-        }
-    }
-
     currentMoves =  validMoves;
     changePressableCells(this) 
 }
