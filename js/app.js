@@ -17,6 +17,7 @@ const whitePawn =  "https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_pl
 let moveCount = 0
 let currentMoves = []
 let activePiece = null
+let currentOnClickMaps = []
 // board init
 function initBoard(){
     for (let i = 0; i < 9; ++i){
@@ -88,8 +89,10 @@ function initBoard(){
 
 function checkValidity(func) {
     return function() {
+        
         if ((this.firstElementChild.src.includes('dt45') && moveCount % 2 === 1) ||
             (this.firstElementChild.src.includes('lt45') && moveCount % 2 === 0)) {
+
             document.querySelectorAll('.available-move').forEach( e => {
                 e.classList.remove('available-move')
             })
@@ -103,21 +106,14 @@ function pawnMove(){
     const row = location[0]
     const column = location[1]
     const validMoves = []
-    debugger
     if (row == 8 || row == 1){
         turnToNewPiece(this)
     }
     else if (moveCount % 2 === 0){
         if (row === 7) {
-            validMoves.push({
-                row : (row) - 2 ,
-                column : (column)
-               })
+            checkEmptyCell(row - 2,column,validMoves)
         }
-        validMoves.push({
-        row : (row) - 1 ,
-        column : (column)
-       })
+        checkEmptyCell(row - 1, column, validMoves)
     }
     else {
         if (row === 2) {
@@ -160,26 +156,31 @@ function rookMove() {
     changePressableCells(this) 
 }
 function bishopMove() {
+    
     const location = getLocation(this);
     const row = location[0];
     const column = location[1];
     const validMoves = [];
 
-    // Check valid diagonal moves
     for (let i = 1; i <= 8; i++) {
-        // Check upper-right diagonal
+
         if (row - i >= 0 && column + i <= 8) {
             validMoves.push({ row: row - i, column: column + i });
         }
-        // Check upper-left diagonal
+    }
+    for (let i = 1; i <= 8; i++) {
         if (row - i >= 0 && column - i >= 0) {
-            validMoves.push({ row: row - i, column: column - i });
+                validMoves.push({ row: row - i, column: column - i });
         }
-        // Check lower-right diagonal
+    }
+    for (let i = 1; i <= 8; i++) {
+
         if (row + i <= 8 && column + i <= 8) {
             validMoves.push({ row: row + i, column: column + i });
         }
-        // Check lower-left diagonal
+
+    }
+    for (let i = 1; i <= 8; i++) {
         if (row + i <= 8 && column - i >= 0) {
             validMoves.push({ row: row + i, column: column - i });
         }
@@ -217,8 +218,6 @@ function knightMove() {
     changePressableCells(this) 
 }
 
-// to do - change queenMove to bishop + rook move
-
 function queenMove() {
     const location = getLocation(this);
     const row = location[0]
@@ -226,19 +225,15 @@ function queenMove() {
     const validMoves = [];
    
     for (let i = 1; i <= 8; i++) {
-        // Check upper-right diagonal
         if (row - i >= 0 && column + i <= 8) {
             validMoves.push({ row: row - i, column: column + i });
         }
-        // Check upper-left diagonal
         if (row - i >= 0 && column - i >= 0) {
             validMoves.push({ row: row - i, column: column - i });
         }
-        // Check lower-right diagonal
         if (row + i <= 8 && column + i <= 8) {
             validMoves.push({ row: row + i, column: column + i });
         }
-        // Check lower-left diagonal
         if (row + i <= 8 && column - i >= 0) {
             validMoves.push({ row: row + i, column: column - i });
         }
@@ -282,13 +277,19 @@ function kingMove() {
 
 function changePressableCells(piece) {
     activePiece = piece
-    currentMoves.forEach( e => {
-        let currentPiece = document.querySelector(`#cell-${e.row}-${e.column}`)
+    resetPiecesOnClicks()
+    currentOnClickMaps = currentMoves.map(piece => {
+        const pieceObject = document.querySelector(`#cell-${piece.row}-${piece.column}`)
+        return {'piece' : pieceObject, onc : pieceObject.onclick}
+    } )
+    currentOnClickMaps.forEach( pieceObject => {
+        let currentPiece = pieceObject.piece
         currentPiece.classList.add("available-move");
         currentPiece.onclick = () => {
             currentPiece.firstElementChild.src = piece.firstElementChild.src
             piece.firstElementChild.src = ' '
             currentPiece.onclick = piece.onclick
+            resetPiecesOnClicks()
             piece.onclick = null
             moveCount++;
             document.querySelectorAll('.available-move').forEach( e => {
@@ -298,6 +299,20 @@ function changePressableCells(piece) {
     })
 }
 
+function resetPiecesOnClicks() {
+    currentOnClickMaps.forEach( pieceObject => {
+        pieceObject.piece.onclick = pieceObject.onc
+    })
+}
+
+function checkEmptyCell(row,column,validMoves) {
+    const src = board.children[row].children[column].firstElementChild.src
+    if (src === 'http://127.0.0.1:5500/html/' || src === '') {
+        validMoves.push({
+            'row' : row, 'column' : column
+        })
+    }
+}
 
 function getLocation(piece){
     let location = piece.id.split('-')
@@ -342,4 +357,3 @@ kings.forEach( (el) => {
     el.onclick = checkValidity(kingMove)
 })
 
-// i want to test gitHub actions
