@@ -124,9 +124,9 @@ function pawnMove(){
     }
     else if (moveCount % 2 === 0){
         if (row === 7) {
-            checkEmptyCell(row - 2,column,validMoves)
+            checkEmptyCell(this,row - 2,column,validMoves)
         }
-        checkEmptyCell(row - 1, column, validMoves)
+        checkEmptyCell(this,row - 1, column, validMoves)
     }
     else {
         if (row === 2) {
@@ -151,23 +151,23 @@ function rookMove() {
     const column = location[1]
     const validMoves = [];
      for (let i = column + 1; i <= 8; i++) {
-        if (!checkEmptyCell(row,i,validMoves)) {
+        if (!checkEmptyCell(this,row,i,validMoves)) {
             break;
         }
     }
     for (let i = column - 1; i >= 1; i--) {
-        if (!checkEmptyCell(row,i,validMoves)) {
+        if (!checkEmptyCell(this,row,i,validMoves)) {
             break;
         }
     }
 
     for (let i = row + 1; row <= 8; i++) {
-        if (!checkEmptyCell(i,column,validMoves)) {
+        if (!checkEmptyCell(this,i,column,validMoves)) {
             break;
         }
     }
     for (let i = row - 1; i >= 1; i--) {
-        if (!checkEmptyCell(i,column,validMoves)) {
+        if (!checkEmptyCell(this,i,column,validMoves)) {
             break;
         }
     }
@@ -181,23 +181,23 @@ function bishopMove() {
     const column = location[1];
     const validMoves = [];
     for (let i = 1; i <= 8; i++) { 
-           if (!checkEmptyCell(row - i, column + i,validMoves)) {
+           if (!checkEmptyCell(this,row - i, column + i,validMoves)) {
             break;
         }
     }
     for (let i = 1; i <= 8; i++) {
-        if (!checkEmptyCell(row - i, column - i,validMoves)) {
+        if (!checkEmptyCell(this,row - i, column - i,validMoves)) {
                 break;
         }
     }
 
     for (let i = 1; i <= 8; i++) {
-        if (!checkEmptyCell(row + i, column + i,validMoves)) {
+        if (!checkEmptyCell(this,row + i, column + i,validMoves)) {
            break;
         }
     }
     for (let i = 1; i <= 8; i++) {
-        if (!checkEmptyCell(row + i, column - i,validMoves)) {
+        if (!checkEmptyCell(this,row + i, column - i,validMoves)) {
            break;
         }
     }
@@ -211,25 +211,26 @@ function knightMove() {
     const row = location[0]
     const column = location[1]
     const validMoves = [];
-    checkEmptyCell(row + 2, column + 1, validMoves)
-    checkEmptyCell(row + 2, column - 1, validMoves)
-    checkEmptyCell(row - 2, column + 1, validMoves)
-    checkEmptyCell(row - 2, column - 1, validMoves)
-    checkEmptyCell(row + 1, column + 2, validMoves)
-    checkEmptyCell(row + 1, column - 2, validMoves)
-    checkEmptyCell(row - 1, column + 2, validMoves)
-    checkEmptyCell(row - 1, column - 2, validMoves)
+    checkEmptyCell(this,row + 2, column + 1, validMoves)
+    checkEmptyCell(this,row + 2, column - 1, validMoves)
+    checkEmptyCell(this,row - 2, column + 1, validMoves)
+    checkEmptyCell(this,row - 2, column - 1, validMoves)
+    checkEmptyCell(this,row + 1, column + 2, validMoves)
+    checkEmptyCell(this,row + 1, column - 2, validMoves)
+    checkEmptyCell(this,row - 1, column + 2, validMoves)
+    checkEmptyCell(this,row - 1, column - 2, validMoves)
     currentMoves =  validMoves;
     changePressableCells(this) 
 }
 
 function queenMove() {
+    // remove code duplication
     const location = getLocation(this);
     const row = location[0]
     const column = location[1]
     const validMoves = [];
     for (let i = column + 1; i <= 8; i++) {
-        if (!checkEmptyCell(row,i,validMoves)) {
+        if (!checkEmptyCell(this,row,i,validMoves)) {
             break;
         }
     }
@@ -323,7 +324,8 @@ function resetPiecesOnClicks() {
     })
 }
 
-function checkEmptyCell(row,column,validMoves) {
+function checkEmptyCell(piece,row,column,validMoves) {
+    console.log(row,column)
    if (isValidMove(row,column)) { 
     const src = board.children[row].children[column].firstElementChild.src
     if (src === 'http://127.0.0.1:5500/html/' || src === '') {
@@ -332,8 +334,17 @@ function checkEmptyCell(row,column,validMoves) {
         })
         return true
     }
+    else if (checkOppositeColors(piece, board.children[row].children[column])) {
+        validMoves.push({
+            'row' : row, 'column' : column, 'eatable' : true
+        })
+    }
     return false
 }
+}
+
+function checkOppositeColors(piece1,piece2) {
+    return (piece1.firstElementChild.src.includes('dt45') && piece2.firstElementChild.src.includes('lt45')) || (piece1.firstElementChild.src.includes('lt45') && piece2.firstElementChild.src.includes('dt45'))
 }
 
 function getLocation(piece){
