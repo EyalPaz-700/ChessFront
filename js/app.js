@@ -14,10 +14,23 @@ const whiteBishop =  "https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_
 const whiteKnight =  "https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg"
 const whitePawn =  "https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg"
 
+// global variables declaration
 let moveCount = 0
 let currentMoves = []
 let activePiece = null
 let currentOnClickMaps = []
+let changedPiece = null
+let hasWhiteKingMoved = false
+let hasBlackKingMoved = false
+let hasRightWhiteRookMoved = false
+let hasLeftBlackRookMoved = false
+let hasRightBlackRookMoved = false
+let hasLeftWhiteRookMoved = false
+
+
+// start game
+window.addEventListener('load',gameStart)
+
 // board init
 function initBoard(){
     for (let i = 0; i < 9; ++i){
@@ -86,7 +99,7 @@ function initBoard(){
     }
 }
 
-
+// move validation decorator
 function checkValidity(func) {
     return function() {
         
@@ -137,21 +150,27 @@ function rookMove() {
     const row = location[0]
     const column = location[1]
     const validMoves = [];
-
-    // Horizontal moves
-    for (let i = 1; i <= 8; i++) {
-        if (i !== column) {
-            validMoves.push({ row, column: i });
+     for (let i = column + 1; i <= 8; i++) {
+        if (!checkEmptyCell(row,i,validMoves)) {
+            break;
+        }
+    }
+    for (let i = column - 1; i >= 1; i--) {
+        if (!checkEmptyCell(row,i,validMoves)) {
+            break;
         }
     }
 
-    // Vertical moves
-    for (let i = 1; i <= 8; i++) {
-        if (i !== row) {
-            validMoves.push({ row: i, column });
+    for (let i = row + 1; row <= 8; i++) {
+        if (!checkEmptyCell(i,column,validMoves)) {
+            break;
         }
     }
-
+    for (let i = row - 1; i >= 1; i--) {
+        if (!checkEmptyCell(i,column,validMoves)) {
+            break;
+        }
+    }
     currentMoves =  validMoves;
     changePressableCells(this) 
 }
@@ -161,33 +180,29 @@ function bishopMove() {
     const row = location[0];
     const column = location[1];
     const validMoves = [];
-
-    for (let i = 1; i <= 8; i++) {
-
-        if (row - i >= 0 && column + i <= 8) {
-            validMoves.push({ row: row - i, column: column + i });
+    for (let i = 1; i <= 8; i++) { 
+           if (!checkEmptyCell(row - i, column + i,validMoves)) {
+            break;
         }
     }
     for (let i = 1; i <= 8; i++) {
-        if (row - i >= 0 && column - i >= 0) {
-                validMoves.push({ row: row - i, column: column - i });
+        if (!checkEmptyCell(row - i, column - i,validMoves)) {
+                break;
+        }
+    }
+
+    for (let i = 1; i <= 8; i++) {
+        if (!checkEmptyCell(row + i, column + i,validMoves)) {
+           break;
         }
     }
     for (let i = 1; i <= 8; i++) {
-
-        if (row + i <= 8 && column + i <= 8) {
-            validMoves.push({ row: row + i, column: column + i });
-        }
-
-    }
-    for (let i = 1; i <= 8; i++) {
-        if (row + i <= 8 && column - i >= 0) {
-            validMoves.push({ row: row + i, column: column - i });
+        if (!checkEmptyCell(row + i, column - i,validMoves)) {
+           break;
         }
     }
 
     currentMoves = validMoves;
-    console.log(validMoves);
     changePressableCells(this);
 }
 
@@ -196,24 +211,14 @@ function knightMove() {
     const row = location[0]
     const column = location[1]
     const validMoves = [];
-
-    const moves = [
-        { row: row + 2, column: column + 1 },
-        { row: row + 2, column: column - 1 },
-        { row: row - 2, column: column + 1 },
-        { row: row - 2, column: column - 1 },
-        { row: row + 1, column: column + 2 },
-        { row: row + 1, column: column - 2 },
-        { row: row - 1, column: column + 2 },
-        { row: row - 1, column: column - 2 },
-    ];
-
-    for (const move of moves) {
-        if (isValidMove(move.row, move.column)) {
-            validMoves.push(move);
-        }
-    }
-
+    checkEmptyCell(row + 2, column + 1, validMoves)
+    checkEmptyCell(row + 2, column - 1, validMoves)
+    checkEmptyCell(row - 2, column + 1, validMoves)
+    checkEmptyCell(row - 2, column - 1, validMoves)
+    checkEmptyCell(row + 1, column + 2, validMoves)
+    checkEmptyCell(row + 1, column - 2, validMoves)
+    checkEmptyCell(row - 1, column + 2, validMoves)
+    checkEmptyCell(row - 1, column - 2, validMoves)
     currentMoves =  validMoves;
     changePressableCells(this) 
 }
@@ -223,27 +228,48 @@ function queenMove() {
     const row = location[0]
     const column = location[1]
     const validMoves = [];
-   
-    for (let i = 1; i <= 8; i++) {
-        if (row - i >= 0 && column + i <= 8) {
-            validMoves.push({ row: row - i, column: column + i });
-        }
-        if (row - i >= 0 && column - i >= 0) {
-            validMoves.push({ row: row - i, column: column - i });
-        }
-        if (row + i <= 8 && column + i <= 8) {
-            validMoves.push({ row: row + i, column: column + i });
-        }
-        if (row + i <= 8 && column - i >= 0) {
-            validMoves.push({ row: row + i, column: column - i });
-        }
-        if (i !== column) {
-            validMoves.push({ row, column: i });
-        }
-        if (i !== row) {
-            validMoves.push({ row: i, column });
+    for (let i = column + 1; i <= 8; i++) {
+        if (!checkEmptyCell(row,i,validMoves)) {
+            break;
         }
     }
+    for (let i = column - 1; i >= 1; i--) {
+        if (!checkEmptyCell(row,i,validMoves)) {
+            break;
+        }
+    }
+
+    for (let i = row + 1; row <= 8; i++) {
+        if (!checkEmptyCell(i,column,validMoves)) {
+            break;
+        }
+    }
+    for (let i = row - 1; i >= 1; i--) {
+        if (!checkEmptyCell(i,column,validMoves)) {
+            break;
+        }
+    }
+    for (let i = 1; i <= 8; i++) { 
+        if (!checkEmptyCell(row - i, column + i,validMoves)) {
+         break;
+     }
+ }
+ for (let i = 1; i <= 8; i++) {
+     if (!checkEmptyCell(row - i, column - i,validMoves)) {
+             break;
+     }
+ }
+
+ for (let i = 1; i <= 8; i++) {
+     if (!checkEmptyCell(row + i, column + i,validMoves)) {
+        break;
+     }
+ }
+ for (let i = 1; i <= 8; i++) {
+     if (!checkEmptyCell(row + i, column - i,validMoves)) {
+        break;
+     }
+ }
     currentMoves =  validMoves;
     changePressableCells(this) 
 }
@@ -253,24 +279,14 @@ function kingMove() {
     const row = location[0]
     const column = location[1]
     const validMoves = [];
-
-    const moves = [
-        { row: row + 1, column },
-        { row: row - 1, column },
-        { row, column: column + 1 },
-        { row, column: column - 1 },
-        { row: row + 1, column: column + 1 },
-        { row: row + 1, column: column - 1 },
-        { row: row - 1, column: column + 1 },
-        { row: row - 1, column: column - 1 },
-    ];
-
-    for (const move of moves) {
-        if (isValidMove(move.row, move.column)) {
-            validMoves.push(move);
-        }
-    }
-
+    checkEmptyCell(row + 1,column + 1,validMoves)
+    checkEmptyCell(row + 1,column - 1,validMoves)
+    checkEmptyCell(row + 1,column,validMoves)
+    checkEmptyCell(row,column - 1,validMoves)
+    checkEmptyCell(row,column + 1,validMoves)
+    checkEmptyCell(row - 1,column + 1,validMoves)
+    checkEmptyCell(row - 1,column - 1,validMoves)
+    checkEmptyCell(row - 1,column,validMoves)
     currentMoves =  validMoves;
     changePressableCells(this) 
 }
@@ -288,9 +304,10 @@ function changePressableCells(piece) {
         currentPiece.onclick = () => {
             currentPiece.firstElementChild.src = piece.firstElementChild.src
             piece.firstElementChild.src = ' '
-            currentPiece.onclick = piece.onclick
             resetPiecesOnClicks()
+            currentPiece.onclick = piece.onclick
             piece.onclick = null
+            changedPiece = currentPiece
             moveCount++;
             document.querySelectorAll('.available-move').forEach( e => {
                 e.classList.remove('available-move')
@@ -301,17 +318,22 @@ function changePressableCells(piece) {
 
 function resetPiecesOnClicks() {
     currentOnClickMaps.forEach( pieceObject => {
-        pieceObject.piece.onclick = pieceObject.onc
+       if (pieceObject.piece !== changedPiece){ 
+        pieceObject.piece.onclick = pieceObject.onc }
     })
 }
 
 function checkEmptyCell(row,column,validMoves) {
+   if (isValidMove(row,column)) { 
     const src = board.children[row].children[column].firstElementChild.src
     if (src === 'http://127.0.0.1:5500/html/' || src === '') {
         validMoves.push({
             'row' : row, 'column' : column
         })
+        return true
     }
+    return false
+}
 }
 
 function getLocation(piece){
@@ -323,37 +345,48 @@ function isValidMove(row,column){
     return row > 0 && column > 0 && row < 9 && column < 9
 }
 
-initBoard()
+// Initial OnClick's
+function onClickInit(){
+    const pawns = document.querySelectorAll('.pawn')
+
+    pawns.forEach( (el) => {
+        el.onclick = checkValidity(pawnMove)
+    })
+    const bishops = document.querySelectorAll('.bishop')
+
+    bishops.forEach( (el) => {
+        el.onclick = checkValidity(bishopMove)
+    })
+    const knights = document.querySelectorAll('.knight')
+
+    knights.forEach( (el) => {
+        el.onclick = checkValidity(knightMove)
+    })
+    const rooks = document.querySelectorAll('.rook')
+
+    rooks.forEach( (el) => {
+        el.onclick = checkValidity(rookMove)
+    })
+    const queens = document.querySelectorAll('.queen')
+
+    queens.forEach( (el) => {
+        el.onclick = checkValidity(queenMove)
+    })
+    const kings = document.querySelectorAll('.king')
+
+    kings.forEach( (el) => {
+        el.onclick = checkValidity(kingMove)
+    })
+
+}
+
+function gameStart() {
+    initBoard()
+    onClickInit()
+
+}
 
 
-const pawns = document.querySelectorAll('.pawn')
 
-pawns.forEach( (el) => {
-    el.onclick = checkValidity(pawnMove)
-})
-const bishops = document.querySelectorAll('.bishop')
 
-bishops.forEach( (el) => {
-    el.onclick = checkValidity(bishopMove)
-})
-const knights = document.querySelectorAll('.knight')
-
-knights.forEach( (el) => {
-    el.onclick = checkValidity(knightMove)
-})
-const rooks = document.querySelectorAll('.rook')
-
-rooks.forEach( (el) => {
-    el.onclick = checkValidity(rookMove)
-})
-const queens = document.querySelectorAll('.queen')
-
-queens.forEach( (el) => {
-    el.onclick = checkValidity(queenMove)
-})
-const kings = document.querySelectorAll('.king')
-
-kings.forEach( (el) => {
-    el.onclick = checkValidity(kingMove)
-})
 
